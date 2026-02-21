@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seedance 2.0 — CN Access Services</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap');
+
+  :root {
+    --bg: #050505;
+    --surface: #0f0f0f;
+    --border: #1a1a1a;
+    --accent: #00ff88;
+    --accent2: #ff3366;
+    --text: #f0f0f0;
+    --muted: #555;
+    --card: #111;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* NOISE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  /* GRID BACKGROUND */
+  .grid-bg {
+    position: fixed;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(0,255,136,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,136,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 80px 40px;
+    position: relative;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hero-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .hero h1 {
+    font-size: clamp(48px, 8vw, 110px);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -3px;
+    margin-bottom: 24px;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+
+  .hero h1 span {
+    color: var(--accent);
+    display: block;
+  }
+
+  .hero-sub {
+    font-size: clamp(16px, 2vw, 20px);
+    color: #888;
+    max-width: 500px;
+    line-height: 1.6;
+    margin-bottom: 48px;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0,255,136,0.08);
+    border: 1px solid rgba(0,255,136,0.2);
+    padding: 10px 20px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    animation: fadeUp 0.6s 0.3s ease both;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+
+  /* SCROLL TICKER */
+  .ticker {
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 0;
+    overflow: hidden;
+    background: var(--surface);
+  }
+
+  .ticker-inner {
+    display: flex;
+    gap: 60px;
+    white-space: nowrap;
+    animation: ticker 20s linear infinite;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 2px;
+  }
+
+  .ticker-inner span { color: var(--accent); }
+
+  /* SERVICES */
+  .services {
+    padding: 100px 40px;
+  }
+
+  .service-desc {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 32px;
+    line-height: 1.7;
+    max-width: 600px;
+  }
+
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 60px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2px;
+  }
+
+  .card {
+    background: var(--card);
+    padding: 48px 40px;
+    border: 1px solid var(--border);
+    position: relative;
+    transition: border-color 0.3s;
+    cursor: pointer;
+  }
+
+  .card:hover {
+    border-color: var(--accent);
+  }
+
+  .card:hover .card-arrow {
+    transform: translate(4px, -4px);
+  }
+
+  .card-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 32px;
+  }
+
+  .card-icon {
+    font-size: 32px;
+    margin-bottom: 20px;
+  }
+
+  .card h3 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+
+  .card p {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.7;
+    margin-bottom: 32px;
+  }
+
+  .card-price {
+    font-family: 'Space Mono', monospace;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  .card-price-note {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .card-arrow {
+    position: absolute;
+    top: 40px;
+    right: 40px;
+    font-size: 20px;
+    transition: transform 0.3s;
+    color: var(--muted);
+  }
+
+  .card.featured {
+    border-color: rgba(0,255,136,0.3);
+    background: rgba(0,255,136,0.03);
+  }
+
+  .card.featured .card-num { color: var(--accent); }
+
+  .card-badge {
+    display: inline-block;
+    background: var(--accent);
+    color: #000;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 10px;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+  }
+
+  /* ORDER SECTION */
+  .order {
+    padding: 100px 40px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+  }
+
+  .order-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    max-width: 900px;
+  }
+
+  .order h2 {
+    font-size: clamp(32px, 5vw, 56px);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -2px;
+    margin-bottom: 48px;
+  }
+
+  .order h2 span { color: var(--accent); }
+
+  .step {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 32px;
+    align-items: flex-start;
+  }
+
+  .step-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    min-width: 24px;
+    margin-top: 2px;
+  }
+
+  .step-content h4 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .step-content p {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.6;
+  }
+
+  /* PAYMENT */
+  .payment-block {
+    padding: 40px;
+    border: 1px solid var(--border);
+    background: var(--card);
+  }
+
+  .payment-block h3 {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 32px;
+  }
+
+  .usdt-address {
+    background: #000;
+    border: 1px solid var(--border);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .usdt-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+
+  .usdt-value {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    color: var(--text);
+    word-break: break-all;
+    line-height: 1.6;
+  }
+
+  .copy-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 14px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    margin-bottom: 20px;
+  }
+
+  .copy-btn:hover { opacity: 0.85; }
+
+  .network-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .network-dot {
+    width: 6px;
+    height: 6px;
+    background: #f90;
+    border-radius: 50%;
+  }
+
+  /* CONTACT */
+  .contact {
+    padding: 100px 40px;
+    border-top: 1px solid var(--border);
+  }
+
+  .contact-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 40px;
+  }
+
+  .contact h2 {
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight: 800;
+    letter-spacing: -2px;
+  }
+
+  .contact h2 span { color: var(--accent); }
+
+  .contact-links {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .contact-link {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 24px;
+    border: 1px solid var(--border);
+    color: var(--text);
+    text-decoration: none;
+    font-size: 14px;
+    transition: all 0.3s;
+    min-width: 260px;
+  }
+
+  .contact-link:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .contact-link-icon {
+    font-size: 20px;
+  }
+
+  .contact-link-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  footer p {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .footer-accent { color: var(--accent); }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  @keyframes ticker {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.9);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .modal-overlay.active { display: flex; }
+
+  .modal {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 48px;
+    max-width: 500px;
+    width: 100%;
+    position: relative;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 20px;
+    cursor: pointer;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .modal h3 {
+    font-size: 24px;
+    font-weight: 800;
+    margin-bottom: 8px;
+  }
+
+  .modal-price {
+    font-family: 'Space Mono', monospace;
+    font-size: 32px;
+    color: var(--accent);
+    margin-bottom: 32px;
+  }
+
+  .modal-steps {
+    margin-bottom: 32px;
+  }
+
+  .modal-step {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    color: #888;
+    align-items: flex-start;
+  }
+
+  .modal-step-num {
+    font-family: 'Space Mono', monospace;
+    color: var(--accent);
+    font-size: 11px;
+    min-width: 20px;
+    margin-top: 2px;
+  }
+
+  .order-btn {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    text-align: center;
+    text-decoration: none;
+  }
+
+  .order-btn:hover { opacity: 0.85; }
+
+  .warning-text {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--accent2);
+    margin-top: 12px;
+    text-align: center;
+  }
+
+  @media (max-width: 768px) {
+    .order-grid { grid-template-columns: 1fr; gap: 48px; }
+    .hero { padding: 60px 24px; }
+    .services, .order, .contact { padding: 60px 24px; }
+    footer { padding: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">
+    <span class="dot"></span>
+    &nbsp;&nbsp;CN Access · Live Now
+  </div>
+  <h1>
+    Seedance 2.0
+    <span>Unlocked.</span>
+  </h1>
+  <p class="hero-sub">
+    The world's most powerful AI video model — China-only. 
+    We have access. You don't. Let's fix that.
+  </p>
+  <div class="hero-badge">
+    <span class="dot"></span>
+    Available Now · Fast Delivery · USDT Only
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-inner">
+    <span>SEEDANCE 2.0</span> · CN ACCESS · <span>FAST DELIVERY</span> · CREDITS RECHARGE · <span>VIDEO GENERATION</span> · ACCOUNT ACCESS · <span>USDT PAYMENT</span> · NO WAITLIST ·
+    <span>SEEDANCE 2.0</span> · CN ACCESS · <span>FAST DELIVERY</span> · CREDITS RECHARGE · <span>VIDEO GENERATION</span> · ACCOUNT ACCESS · <span>USDT PAYMENT</span> · NO WAITLIST ·
+  </div>
+</div>
+
+<!-- SERVICES -->
+<section class="services">
+
+  <!-- SERVICE 1: MEMBERSHIP -->
+  <div class="section-label">01 · Membership Recharge</div>
+  <p class="service-desc">Provide your Jimeng userId — we top up your account within 30 minutes. No account sharing, no password needed.</p>
+  <div class="cards" style="margin-bottom: 80px;">
+
+    <div class="card" onclick="openModal('basic7')">
+      <div class="card-num">Basic · 7 Days</div>
+      <div class="card-icon">🔋</div>
+      <h3>Basic 7-Day</h3>
+      <p>~252 credits · approx. 50 videos at 5s Fast mode. Perfect for testing.</p>
+      <div class="card-price">$9</div>
+      <div class="card-price-note">30 min delivery · userId required</div>
+      <div class="card-arrow">↗</div>
+    </div>
+
+    <div class="card featured" onclick="openModal('basic30')">
+      <div class="card-num">Basic · 30 Days</div>
+      <div class="card-badge">BEST VALUE</div>
+      <div class="card-icon">⚡</div>
+      <h3>Basic 30-Day</h3>
+      <p>1080 credits · approx. 216 videos at 5s Fast mode. Most popular choice.</p>
+      <div class="card-price">$18</div>
+      <div class="card-price-note">30 min delivery · userId required</div>
+      <div class="card-arrow">↗</div>
+    </div>
+
+    <div class="card" onclick="openModal('standard30')">
+      <div class="card-num">Standard · 30 Days</div>
+      <div class="card-icon">🚀</div>
+      <h3>Standard 30-Day</h3>
+      <p>4000 credits · approx. 800 videos at 5s Fast mode. Pro-level output.</p>
+      <div class="card-price">$49</div>
+      <div class="card-price-note">30 min delivery · userId required</div>
+      <div class="card-arrow">↗</div>
+    </div>
+
+    <div class="card" onclick="openModal('standard365')">
+      <div class="card-num">Standard · 365 Days</div>
+      <div class="card-icon">💎</div>
+      <h3>Standard 1-Year</h3>
+      <p>48,000 credits · approx. 9,600 videos. Maximum value for serious creators.</p>
+      <div class="card-price">$329</div>
+      <div class="card-price-note">30 min delivery · userId required</div>
+      <div class="card-arrow">↗</div>
+    </div>
+
+  </div>
+
+  <!-- SERVICE 2: CREDITS -->
+  <div class="section-label">02 · Credits Top-Up</div>
+  <p class="service-desc">Already have a membership but need more credits? Top up directly to your account. No expiry on purchased credits.</p>
+  <div class="cards" style="margin-bottom: 80px;">
+
+    <div class="card" onclick="openModal('cr500')">
+      <div class="card-num">500 pts</div>
+      <div class="card-icon">🔹</div>
+      <h3>500 Credits</h3>
+      <p>Approx. 100 videos at 5s · 33 videos at 15s Fast mode.</p>
+      <div class="card-price">$15</div>
+      <div class="card-price-note">30 min delivery</div>
+      <div class="card-arrow">↗</div>
+    </div>
+
+    <div class="card featured" onclick="openModal('cr1500')">
+      <div class="card-num">1500 pts</div>
+      <div class="card-badge">POPULAR</div>
+      <div class="card-icon">🔷</div>
+      <h3>1500 Credits</h3>
+      <p>Approx. 300 videos at 5s · 100 videos at 15s Fast mode.</p>
+      <div class="card-price">$42</div>
+      <div class="card-price-note">30 min delivery</div>
+      <div class="card-arrow">↗</div>
+    </div>
+
+    <div class="card" onclick="openModal('cr4500')">
+      <div class="card-num">4500 pts</div>
+      <div class="card-icon">💠</div>
+      <h3>4500 Credits</h3>
+      <p>Approx. 900 videos at 5s · 300 videos at 15s Fast mode.</p>
+      <div class="card-price">$119</div>
+      <div class="card-price-note">30 min delivery</div>
+      <div class="card-arrow">↗</div>
+    </div>
+
+  </div>
+
+  <!-- SERVICE 3: VIDEO -->
+  <div class="section-label">03 · Video Generation</div>
+  <p class="service-desc">Don't want to manage an account? Send us your prompt or reference image — we generate Seedance 2.0 videos and deliver the file.</p>
+  <div class="cards">
+
+    <div class="card" onclick="openModal('vid5')">
+      <div class="card-num">5–8 sec</div>
+      <div class="card-icon">🎬</div>
+      <h3>Short Clip</h3>
+      <p>Text-to-video or image-to-video. 2 variations included. Great for product demos and social content.</p>
+      <div class="card-price">$35</div>
+      <div class="card-price-note">2–4 hr delivery · Prompt via Telegram</div>
+      <div class="card-arrow">↗</div>
+    </div>
+
+    <div class="card featured" onclick="openModal('vid15')">
+      <div class="card-num">10–15 sec</div>
+      <div class="card-badge">RECOMMENDED</div>
+      <div class="card-icon">🎥</div>
+      <h3>Full Scene</h3>
+      <p>Cinematic quality, full Seedance 2.0 capabilities. 3 variations included. Multi-modal reference supported.</p>
+      <div class="card-price">$79</div>
+      <div class="card-price-note">2–4 hr delivery · Prompt via Telegram</div>
+      <div class="card-arrow">↗</div>
+    </div>
+
+  </div>
+
+</section>
+
+<!-- HOW TO ORDER -->
+<section class="order">
+  <div class="section-label">How It Works</div>
+  <div class="order-grid">
+    <div>
+      <h2>Order in <span>3 steps.</span></h2>
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <h4>Choose your service</h4>
+          <p>Pick credits recharge, account access, or video generation above.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <h4>Send USDT payment</h4>
+          <p>Transfer USDT (TRC20) to our wallet. Send us the transaction hash as proof.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <h4>Receive delivery</h4>
+          <p>Credits recharge: 30 min. Account: 1 hour. Video: 2-4 hours. All via Telegram.</p>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="payment-block">
+        <h3>Payment · USDT TRC20</h3>
+        <div class="usdt-address">
+          <div class="usdt-label">WALLET ADDRESS</div>
+          <div class="usdt-value" id="usdt-addr">TA18vMAt6DE3aS2r2frGXQ7xonzPXgJoEV</div>
+        </div>
+        <button class="copy-btn" onclick="copyAddress()">
+          📋 COPY ADDRESS
+        </button>
+        <div class="network-badge">
+          <div class="network-dot"></div>
+          Tron Network · TRC20 · Min 1 USDT
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact">
+  <div class="contact-inner">
+    <div>
+      <h2>Questions?<br><span>DM us.</span></h2>
+      <p style="color:#555; font-size:14px; margin-top:16px; max-width:300px;">
+        Average response time: under 30 minutes.<br>
+        Operating hours: 24/7.
+      </p>
+    </div>
+    <div class="contact-links">
+      <a href="https://t.me/AiGateZ" class="contact-link" target="_blank">
+        <span class="contact-link-icon">✈️</span>
+        <div>
+          <span class="contact-link-label">TELEGRAM</span>
+          @AiGateZ
+        </div>
+      </a>
+      <a href="https://reddit.com/u/Educational-Lion7812" class="contact-link" target="_blank">
+        <span class="contact-link-icon">🔴</span>
+        <div>
+          <span class="contact-link-label">REDDIT</span>
+          u/Educational-Lion7812
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>© 2026 Seedance CN Access. <span class="footer-accent">Independent service.</span> Not affiliated with ByteDance.</p>
+  <p>All sales final · <span class="footer-accent">USDT only</span> · No chargebacks</p>
+</footer>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modal" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h3 id="modal-title"></h3>
+    <div class="modal-price" id="modal-price"></div>
+    <div class="modal-steps" id="modal-steps"></div>
+    <a href="https://t.me/AiGateZ" class="order-btn" target="_blank">
+      ORDER ON TELEGRAM →
+    </a>
+    <p class="warning-text" id="modal-warning"></p>
+  </div>
+</div>
+
+<script>
+const services = {
+  basic7: {
+    title: 'Basic Membership · 7 Days',
+    price: '$9 USDT',
+    steps: [
+      { n: '01', t: 'Contact us on Telegram and tell us "Basic 7 Days"' },
+      { n: '02', t: 'Provide your Jimeng userId (right-click avatar on web → copy userId)' },
+      { n: '03', t: 'Send $9 USDT to our wallet and share the transaction hash' },
+      { n: '04', t: 'Membership activated within 30 minutes. Email notification sent.' }
+    ],
+    warning: '⚠ Requires Chinese IP + Douyin account to use. No refunds after top-up.'
+  },
+  basic30: {
+    title: 'Basic Membership · 30 Days',
+    price: '$18 USDT',
+    steps: [
+      { n: '01', t: 'Contact us on Telegram and tell us "Basic 30 Days"' },
+      { n: '02', t: 'Provide your Jimeng userId (right-click avatar on web → copy userId)' },
+      { n: '03', t: 'Send $18 USDT to our wallet and share the transaction hash' },
+      { n: '04', t: 'Membership activated within 30 minutes. Email notification sent.' }
+    ],
+    warning: '⚠ Requires Chinese IP + Douyin account to use. No refunds after top-up.'
+  },
+  standard30: {
+    title: 'Standard Membership · 30 Days',
+    price: '$49 USDT',
+    steps: [
+      { n: '01', t: 'Contact us on Telegram and tell us "Standard 30 Days"' },
+      { n: '02', t: 'Provide your Jimeng userId (right-click avatar on web → copy userId)' },
+      { n: '03', t: 'Send $49 USDT to our wallet and share the transaction hash' },
+      { n: '04', t: 'Membership activated within 30 minutes. Email notification sent.' }
+    ],
+    warning: '⚠ Requires Chinese IP + Douyin account to use. No refunds after top-up.'
+  },
+  standard365: {
+    title: 'Standard Membership · 1 Year',
+    price: '$329 USDT',
+    steps: [
+      { n: '01', t: 'Contact us on Telegram and tell us "Standard 1 Year"' },
+      { n: '02', t: 'Provide your Jimeng userId (right-click avatar on web → copy userId)' },
+      { n: '03', t: 'Send $329 USDT to our wallet and share the transaction hash' },
+      { n: '04', t: 'Membership activated within 30 minutes. Email notification sent.' }
+    ],
+    warning: '⚠ Requires Chinese IP + Douyin account to use. No refunds after top-up.'
+  },
+  cr500: {
+    title: '500 Credits Top-Up',
+    price: '$15 USDT',
+    steps: [
+      { n: '01', t: 'Contact us on Telegram and tell us "500 Credits"' },
+      { n: '02', t: 'Provide your Jimeng userId' },
+      { n: '03', t: 'Send $15 USDT and share the transaction hash' },
+      { n: '04', t: 'Credits added to your account within 30 minutes.' }
+    ],
+    warning: '⚠ Must have an existing Jimeng account with active membership.'
+  },
+  cr1500: {
+    title: '1500 Credits Top-Up',
+    price: '$42 USDT',
+    steps: [
+      { n: '01', t: 'Contact us on Telegram and tell us "1500 Credits"' },
+      { n: '02', t: 'Provide your Jimeng userId' },
+      { n: '03', t: 'Send $42 USDT and share the transaction hash' },
+      { n: '04', t: 'Credits added to your account within 30 minutes.' }
+    ],
+    warning: '⚠ Must have an existing Jimeng account with active membership.'
+  },
+  cr4500: {
+    title: '4500 Credits Top-Up',
+    price: '$119 USDT',
+    steps: [
+      { n: '01', t: 'Contact us on Telegram and tell us "4500 Credits"' },
+      { n: '02', t: 'Provide your Jimeng userId' },
+      { n: '03', t: 'Send $119 USDT and share the transaction hash' },
+      { n: '04', t: 'Credits added to your account within 30 minutes.' }
+    ],
+    warning: '⚠ Must have an existing Jimeng account with active membership.'
+  },
+  vid5: {
+    title: 'Video Generation · 5–8 sec',
+    price: '$35 USDT',
+    steps: [
+      { n: '01', t: 'Contact us on Telegram with your text prompt or reference image' },
+      { n: '02', t: 'Send $35 USDT upfront and share the transaction hash' },
+      { n: '03', t: 'We generate 2 variations using Seedance 2.0' },
+      { n: '04', t: 'Receive final video file within 2–4 hours via Telegram' }
+    ],
+    warning: ''
+  },
+  vid15: {
+    title: 'Video Generation · 10–15 sec',
+    price: '$79 USDT',
+    steps: [
+      { n: '01', t: 'Contact us on Telegram with your text prompt or reference image' },
+      { n: '02', t: 'Send $79 USDT upfront and share the transaction hash' },
+      { n: '03', t: 'We generate 3 variations using full Seedance 2.0 capabilities' },
+      { n: '04', t: 'Receive final video file within 2–4 hours via Telegram' }
+    ],
+    warning: ''
+  }
+};
+
+function openModal(type) {
+  const s = services[type];
+  document.getElementById('modal-title').textContent = s.title;
+  document.getElementById('modal-price').textContent = s.price;
+  document.getElementById('modal-steps').innerHTML = s.steps.map(step =>
+    `<div class="modal-step"><span class="modal-step-num">${step.n}</span><span>${step.t}</span></div>`
+  ).join('');
+  document.getElementById('modal-warning').textContent = s.warning;
+  document.getElementById('modal').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('active');
+}
+
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('modal')) closeModal();
+}
+
+function copyAddress() {
+  const addr = document.getElementById('usdt-addr').textContent;
+  navigator.clipboard.writeText(addr).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = '✅ COPIED!';
+    setTimeout(() => btn.innerHTML = '📋 COPY ADDRESS', 2000);
+  });
+}
+</script>
+</body>
+</html>
