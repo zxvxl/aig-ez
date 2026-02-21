@@ -51,11 +51,11 @@
 
   /* HERO */
   .hero {
-    min-height: 100vh;
+    min-height: 60vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: 80px 40px;
+    padding: 60px 40px;
     position: relative;
     border-bottom: 1px solid var(--border);
   }
@@ -113,6 +113,73 @@
     border-radius: 50%;
     animation: pulse 1.5s infinite;
   }
+
+  /* FIXED NAV */
+  .topnav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: rgba(5,5,5,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    height: 56px;
+  }
+
+  .topnav-logo {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 2px;
+  }
+
+  .topnav-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .topnav-usdt {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .topnav-usdt-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+
+  .topnav-tg {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--accent);
+    color: #000;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 8px 16px;
+    text-decoration: none;
+    transition: opacity 0.2s;
+  }
+
+  .topnav-tg:hover { opacity: 0.85; }
+
+  body { padding-top: 56px; }
 
   /* SCROLL TICKER */
   .ticker {
@@ -548,7 +615,46 @@
     margin-top: 2px;
   }
 
-  .order-btn {
+  .modal-usdt {
+    background: #0a0a0a;
+    border: 1px solid var(--border);
+    padding: 16px 20px;
+    margin-bottom: 20px;
+  }
+
+  .modal-usdt-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 3px;
+    margin-bottom: 8px;
+  }
+
+  .modal-usdt-addr {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    word-break: break-all;
+    margin-bottom: 10px;
+    line-height: 1.6;
+  }
+
+  .modal-copy-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  .modal-copy-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
     display: block;
     width: 100%;
     padding: 16px;
@@ -586,6 +692,20 @@
 <body>
 
 <div class="grid-bg"></div>
+
+<!-- FIXED NAV -->
+<nav class="topnav">
+  <div class="topnav-logo">✦ AIGАТEZ</div>
+  <div class="topnav-actions">
+    <div class="topnav-usdt">
+      <div class="topnav-usdt-dot"></div>
+      USDT TRC20 ONLY
+    </div>
+    <a href="https://t.me/AiGateZ" class="topnav-tg" target="_blank">
+      ✈ ORDER NOW
+    </a>
+  </div>
+</nav>
 
 <!-- HERO -->
 <section class="hero">
@@ -824,6 +944,13 @@
     <h3 id="modal-title"></h3>
     <div class="modal-price" id="modal-price"></div>
     <div class="modal-steps" id="modal-steps"></div>
+
+    <div class="modal-usdt">
+      <div class="modal-usdt-label">PAYMENT · USDT TRC20</div>
+      <div class="modal-usdt-addr">TA18vMAt6DE3aS2r2frGXQ7xonzPXgJoEV</div>
+      <button class="modal-copy-btn" onclick="copyModalAddress()">📋 COPY ADDRESS</button>
+    </div>
+
     <a href="https://t.me/AiGateZ" class="order-btn" target="_blank">
       ORDER ON TELEGRAM →
     </a>
@@ -951,6 +1078,14 @@ function closeModal() {
 
 function closeModalOutside(e) {
   if (e.target === document.getElementById('modal')) closeModal();
+}
+
+function copyModalAddress() {
+  navigator.clipboard.writeText('TA18vMAt6DE3aS2r2frGXQ7xonzPXgJoEV').then(() => {
+    const btn = document.querySelector('.modal-copy-btn');
+    btn.textContent = '✅ COPIED!';
+    setTimeout(() => btn.textContent = '📋 COPY ADDRESS', 2000);
+  });
 }
 
 function copyAddress() {
